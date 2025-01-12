@@ -78,4 +78,48 @@ namespace std{
     if (auto err = f; err != ESP_OK) \
         return std::unexpected(Err{location, err})
 
+#define TRY_RESULT_ADAPT_ERR(res, expr, on_err) \
+    if (auto r = expr; !r) \
+        return std::unexpected(on_err(r.error())); \
+    else \
+        res = (*r).v;
+
+#define TRY_VOID_ADAPT_ERR(expr, on_err) \
+    if (auto r = expr; !r) \
+        return std::unexpected(on_err(r.error())); \
+
+#define RETRY_VOID_ADAPT_ERR(retry, expr, on_fail, on_err) \
+    if (auto r = expr; !r) \
+    { \
+        if (retry)  \
+        { \
+            on_fail(); \
+            continue; \
+        } \
+        return std::unexpected(on_err(r.error())); \
+    }else \
+        break;
+
+#define TRY_RESULT(res, expr) \
+    if (auto r = expr; !r) \
+        return std::unexpected(r.error()); \
+    else \
+        res = (*r).v;
+
+#define TRY_VOID(expr) \
+    if (auto r = expr; !r) \
+        return std::unexpected(r.error()); \
+
+#define RETRY_VOID(retry, expr, on_fail) \
+    if (auto r = expr; !r) \
+    { \
+        if (retry)  \
+        { \
+            on_fail(); \
+            continue; \
+        } \
+        return std::unexpected(r.error()); \
+    }else \
+        break;
+
 #endif
