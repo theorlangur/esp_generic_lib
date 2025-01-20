@@ -51,8 +51,10 @@ struct WithInvalidState
 
 #ifdef NDEBUG
 #define FMT_PRINT(fmt,...) {}
+#define FMT_PRINTLN(fmt,...) {}
 #else
 #define FMT_PRINT(fmt,...) { char buf[256]; tools::format_to(tools::BufferFormatter(buf), fmt __VA_OPT__(,) __VA_ARGS__); printf("%s", buf); }
+#define FMT_PRINTLN(fmt,...) { char buf[256]; tools::format_to(tools::BufferFormatter(buf), fmt "\n" __VA_OPT__(,) __VA_ARGS__); printf("%s", buf); }
 #endif
 
 #endif
