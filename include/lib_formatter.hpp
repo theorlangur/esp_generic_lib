@@ -224,6 +224,8 @@ namespace tools
                         auto digit = decPart % 10;
                         intStr[n - ++d] = '0' + digit;
                     }
+                    while (d < maxDecimalPlaces)
+                      intStr[n - ++d] = '0';
                 }else
                     full = false;
             }else
@@ -231,13 +233,17 @@ namespace tools
 
             if (full)
             {
+                uint8_t decPlacesLeft = 9;
                 while(decPart)
                 {
                     auto digit = decPart % 10;
                     if (digit || d)
                         intStr[n - ++d] = '0' + digit;
                     decPart /= 10;
+                    --decPlacesLeft;
                 }
+                while(decPlacesLeft--)
+                    intStr[n - ++d] = '0';
             }
             if (d)
                 intStr[n - ++d] = '.';
