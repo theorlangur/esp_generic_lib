@@ -1,7 +1,9 @@
 #ifndef LIB_MISC_HELPERS_HPP_
 #define LIB_MISC_HELPERS_HPP_
 
+#if __has_include("esp_err.h")
 #include "esp_err.h"
+#endif
 #include <chrono>
 #include "lib_formatter.hpp"
 
@@ -49,7 +51,7 @@ struct WithInvalidState
     static constexpr BaseType kInvalidState = kInv;
 };
 
-#ifdef NDEBUG
+#if defined(NDEBUG) && !defined(FORCE_FMT)
 #define FMT_PRINT(fmt,...) {}
 #define FMT_PRINTLN(fmt,...) {}
 #else
