@@ -42,9 +42,23 @@ public:
         T *m_pPtr = nullptr;
     };
 
-    ObjectPool()
+    constexpr ObjectPool()
     {
         for(size_t i = 0; i < N; ++i) m_Data[i].m_NextFree = i + 1;
+    }
+
+    size_t PtrToIdx(T *pPtr) const
+    {
+        assert(((Elem*)pPtr >= m_Data) && ((Elem*)pPtr < (m_Data + N)));
+        size_t res = (Elem*)pPtr - m_Data;
+        assert(m_Allocated.test(res));
+        return res;
+    }
+
+    T *IdxToPtr(size_t idx) const
+    {
+        assert((idx < N) && m_Allocated.test(idx));
+        return &m_Data[idx].m_Object;
     }
 
     bool IsValid(T *pPtr) const
@@ -86,7 +100,7 @@ private:
     size_t m_FirstFree = 0;
     union Elem
     {
-        Elem():m_NextFree(0){}
+        constexpr Elem():m_NextFree(0){}
         ~Elem(){}
         size_t m_NextFree;
         T m_Object;
