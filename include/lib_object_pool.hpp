@@ -1,13 +1,59 @@
 #ifndef LIB_OBJECT_POOL_HPP_
 #define LIB_OBJECT_POOL_HPP_
 
-#include <bitset>
+#include <inttypes.h>
+#include <assert.h>
 #include "lib_type_traits.hpp"
+
+template<size_t N>
+struct MinSizeType { using type = size_t; };
+template<size_t N> requires (N <= 255)
+struct MinSizeType<N> { using type = uint8_t; };
+template<size_t N> requires (N > 255 && N <= 65535)
+struct MinSizeType<N> { using type = uint16_t; };
+
+template<size_t N>
+struct MinBitSizeType { using type = size_t; };
+template<size_t N> requires (N <= 7)
+struct MinBitSizeType<N> { using type = uint8_t; };
+template<size_t N> requires (N > 7 && N <= 15)
+struct MinBitSizeType<N> { using type = uint16_t; };
+
+template<size_t N>
+class MinBitSet
+{
+public:
+    using size_type = MinBitSizeType<N>::type;
+    static constexpr size_t bits_per_element = sizeof(size_type) * 8;
+    static constexpr size_t data_count = (N + bits_per_element - 1) / bits_per_element;
+
+    constexpr MinBitSet() = default;
+
+    bool test(size_t bit) const
+    {
+        return (m_Data[bit / bits_per_element] & (1 << (bit % bits_per_element))) != 0;
+    }
+
+    void set(size_t bit)
+    {
+        m_Data[bit / bits_per_element] |= 1 << (bit % bits_per_element);
+    }
+
+    void reset(size_t bit)
+    {
+        m_Data[bit / bits_per_element] &= ~(1 << (bit % bits_per_element));
+    }
+
+private:
+    size_type m_Data[data_count] = {0};
+};
 
 template<class T, size_t N>
 class ObjectPool
 {
 public:
+    using size_type = MinSizeType<N>::type;
+
     template<ObjectPool<T,N> &staticPool>
     class Ptr
     {
@@ -55,7 +101,7 @@ public:
         return res;
     }
 
-    T *IdxToPtr(size_t idx) const
+    T *IdxToPtr(size_t idx)
     {
         assert((idx < N) && m_Allocated.test(idx));
         return &m_Data[idx].m_Object;
@@ -96,13 +142,13 @@ public:
         }
     }
 private:
-    std::bitset<N> m_Allocated;
-    size_t m_FirstFree = 0;
+    MinBitSet<N> m_Allocated;
+    size_type m_FirstFree = 0;
     union Elem
     {
         constexpr Elem():m_NextFree(0){}
         ~Elem(){}
-        size_t m_NextFree;
+        size_type m_NextFree;
         T m_Object;
     };
     Elem m_Data[N];
