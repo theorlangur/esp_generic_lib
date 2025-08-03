@@ -1,23 +1,9 @@
 #ifndef LIB_OBJECT_POOL_HPP_
 #define LIB_OBJECT_POOL_HPP_
 
-#include <inttypes.h>
 #include <assert.h>
 #include "lib_type_traits.hpp"
 
-template<size_t N>
-struct MinSizeType { using type = size_t; };
-template<size_t N> requires (N <= 255)
-struct MinSizeType<N> { using type = uint8_t; };
-template<size_t N> requires (N > 255 && N <= 65535)
-struct MinSizeType<N> { using type = uint16_t; };
-
-template<size_t N>
-struct MinBitSizeType { using type = size_t; };
-template<size_t N> requires (N <= 7)
-struct MinBitSizeType<N> { using type = uint8_t; };
-template<size_t N> requires (N > 7 && N <= 15)
-struct MinBitSizeType<N> { using type = uint16_t; };
 
 template<size_t N>
 class MinBitSet
@@ -53,6 +39,7 @@ class ObjectPool
 {
 public:
     using size_type = MinSizeType<N>::type;
+    static constexpr size_type kInvalid = N;
 
     template<ObjectPool<T,N> &staticPool>
     class Ptr
@@ -93,12 +80,13 @@ public:
         for(size_t i = 0; i < N; ++i) m_Data[i].m_NextFree = i + 1;
     }
 
-    size_t PtrToIdx(T *pPtr) const
+    size_type PtrToIdx(T *pPtr) const
     {
+        if (!pPtr) return kInvalid;
         assert(((Elem*)pPtr >= m_Data) && ((Elem*)pPtr < (m_Data + N)));
         size_t res = (Elem*)pPtr - m_Data;
         assert(m_Allocated.test(res));
-        return res;
+        return (size_type)res;
     }
 
     T *IdxToPtr(size_t idx)
