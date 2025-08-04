@@ -27,7 +27,7 @@ struct RingBuffer
         ScopeExit cleanup = [&]{
             if constexpr (!std::is_trivially_destructible_v<T>)
                 m_Buf[m_Head].item.~T();
-            ++m_Head;
+            m_Head = (m_Head + 1) % N;
             m_Full = false;
         };
         return m_Buf[m_Head].item;
@@ -39,7 +39,7 @@ struct RingBuffer
 
         if constexpr (!std::is_trivially_destructible_v<T>)
             m_Buf[m_Head].item.~T();
-        ++m_Head;
+        m_Head = (m_Head + 1) % N;
         m_Full = false;
         return true;
     }
@@ -55,8 +55,8 @@ private:
         T item;
     };
     Raw m_Buf[N];
-    size_type m_Head = N;
-    size_type m_Tail = N;
+    size_type m_Head = 0;
+    size_type m_Tail = 0;
     bool m_Full = false;
 };
 
