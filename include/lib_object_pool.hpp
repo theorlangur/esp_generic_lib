@@ -31,7 +31,7 @@ public:
     }
 
 private:
-    size_type m_Data[data_count] = {0};
+    size_type m_Data[data_count] = {};
 };
 
 template<class T, size_t N>
