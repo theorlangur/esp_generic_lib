@@ -12,6 +12,7 @@ public:
     using size_type = MinBitSizeType<N>::type;
     static constexpr size_t bits_per_element = sizeof(size_type) * 8;
     static constexpr size_t data_count = (N + bits_per_element - 1) / bits_per_element;
+    static constexpr size_t BitCount = N;
 
     constexpr MinBitSet() = default;
 
@@ -129,6 +130,8 @@ public:
             m_Allocated.reset(m_FirstFree);
         }
     }
+
+    auto const& AllocatedBitSet() const { return m_Allocated; }
 private:
     MinBitSet<N> m_Allocated;
     size_type m_FirstFree = 0;

@@ -62,6 +62,30 @@ struct RingBuffer
         if (m_Tail == m_Head) return nullptr;
         return &m_Buf[(m_Head + 1) & kMask].item;
     }
+
+    size_t size() const requires (N > 0)
+    {
+        if (m_Tail == m_Head) return 0;
+        return (m_Tail + kBufSize - m_Head) & kMask;
+    }
+
+    struct iterator_t
+    {
+        RingBuffer &r;
+        size_type i;
+        void operator++()
+        {
+            i = (i + 1) & kMask;
+        }
+        bool operator!=(const iterator_t &it) const { return i != it.i; }
+        T* operator*()
+        {
+            return &(r.m_Buf[(i + 1) & kMask].item);
+        }
+    };
+
+    auto begin() { return iterator_t{*this, m_Head}; }
+    auto end() { return iterator_t{*this, m_Tail}; }
 private:
     union Raw
     {
