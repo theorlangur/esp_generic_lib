@@ -298,6 +298,28 @@ namespace tools
     };
 
     template<>
+    struct formatter_t<std::span<char>>
+    {
+        template<FormatDestination Dest>
+        static std::expected<size_t, FormatError> format_to(Dest &&dst, std::string_view const& fmtStr, std::span<char> const &v)
+        {
+            dst(std::string_view{v.begin(), v.end()});
+            return v.size();
+        }
+    };
+
+    template<>
+    struct formatter_t<std::span<const char>>
+    {
+        template<FormatDestination Dest>
+        static std::expected<size_t, FormatError> format_to(Dest &&dst, std::string_view const& fmtStr, std::span<const char> const &v)
+        {
+            dst(std::string_view{v.begin(), v.end()});
+            return v.size();
+        }
+    };
+
+    template<>
     struct formatter_t<std::span<uint8_t>>
     {
         template<FormatDestination Dest>
@@ -711,6 +733,15 @@ namespace tools
                 *dst = 0;
         }
     };
+
+    template<size_t N, class... T>
+    std::span<char> format_to_span(char (&buf)[N], const char *fmt, T&&... args)
+    {
+        auto r = tools::format_to(tools::BufferFormatter(buf), fmt, std::forward<T>(args)...);
+        if (!r)
+            return {};
+        return {buf, buf + *r};
+    }
 }
 
 #endif
