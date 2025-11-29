@@ -742,6 +742,15 @@ namespace tools
             return {};
         return {buf, buf + *r};
     }
+
+    template<size_t N, class... T>
+    std::string_view format_to_sv(char (&buf)[N], const char *fmt, T&&... args)
+    {
+        auto r = tools::format_to(tools::BufferFormatter(buf), fmt, std::forward<T>(args)...);
+        if (!r)
+            return {};
+        return {buf, buf + *r};
+    }
 }
 
 #endif
